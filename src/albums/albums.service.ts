@@ -8,7 +8,7 @@ import { DatabaseService } from '../database/database.service';
 export class AlbumsService {
   constructor(private readonly db: DatabaseService) {}
 
-  create(createAlbumDto: CreateAlbumDto): Album {
+  async create(createAlbumDto: CreateAlbumDto): Promise<Album> {
     const newAlbum: Album = {
       id: randomUUID(),
       name: createAlbumDto.name,
@@ -20,11 +20,11 @@ export class AlbumsService {
     return newAlbum;
   }
 
-  findAll(): Album[] {
+  async findAll(): Promise<Album[]> {
     return this.db.albums;
   }
 
-  findOne(id: string): Album {
+  async findOne(id: string): Promise<Album> {
     const album = this.db.albums.find((album) => album.id === id);
     if (!album) {
       throw new NotFoundException('Album not found');
@@ -32,7 +32,7 @@ export class AlbumsService {
     return album;
   }
 
-  update(id: string, updateAlbumDto: UpdateAlbumDto): Album {
+  async update(id: string, updateAlbumDto: UpdateAlbumDto): Promise<Album> {
     const albumIndex = this.db.albums.findIndex((album) => album.id === id);
     if (albumIndex === -1) {
       throw new NotFoundException('Album not found');
@@ -49,7 +49,7 @@ export class AlbumsService {
     return updatedAlbum;
   }
 
-  remove(id: string): void {
+  async remove(id: string): Promise<void> {
     const albumIndex = this.db.albums.findIndex((album) => album.id === id);
     if (albumIndex === -1) {
       throw new NotFoundException('Album not found');
@@ -58,7 +58,7 @@ export class AlbumsService {
     this.db.deleteAlbum(id);
   }
 
-  exists(id: string): boolean {
+  async exists(id: string): Promise<boolean> {
     return this.db.albums.some((album) => album.id === id);
   }
 }
