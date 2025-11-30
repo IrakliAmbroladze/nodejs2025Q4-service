@@ -55,6 +55,7 @@ export class AlbumsService {
       throw new NotFoundException('Album not found');
     }
     this.db.albums.splice(albumIndex, 1);
+    this.db.deleteAlbum(id);
   }
 
   exists(id: string): boolean {

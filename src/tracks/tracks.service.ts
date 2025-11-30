@@ -57,6 +57,7 @@ export class TracksService {
       throw new NotFoundException('Track not found');
     }
     this.db.tracks.splice(trackIndex, 1);
+    this.db.deleteTrack(id);
   }
 
   exists(id: string): boolean {

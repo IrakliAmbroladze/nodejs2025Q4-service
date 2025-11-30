@@ -53,6 +53,7 @@ export class ArtistsService {
       throw new NotFoundException('Artist not found');
     }
     this.db.artists.splice(artistIndex, 1);
+    this.db.deleteArtist(id);
   }
 
   exists(id: string): boolean {
