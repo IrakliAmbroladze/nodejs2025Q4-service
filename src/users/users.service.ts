@@ -13,6 +13,7 @@ export class UsersService {
   constructor(private readonly db: DatabaseService) {}
 
   private excludePassword(user: User): UserResponse {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
