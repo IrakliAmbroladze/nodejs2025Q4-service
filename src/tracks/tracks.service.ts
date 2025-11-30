@@ -8,7 +8,7 @@ import { DatabaseService } from '../database/database.service';
 export class TracksService {
   constructor(private readonly db: DatabaseService) {}
 
-  create(createTrackDto: CreateTrackDto): Track {
+  async create(createTrackDto: CreateTrackDto): Promise<Track> {
     const newTrack: Track = {
       id: randomUUID(),
       name: createTrackDto.name,
@@ -21,11 +21,11 @@ export class TracksService {
     return newTrack;
   }
 
-  findAll(): Track[] {
+  async findAll(): Promise<Track[]> {
     return this.db.tracks;
   }
 
-  findOne(id: string): Track {
+  async findOne(id: string): Promise<Track> {
     const track = this.db.tracks.find((track) => track.id === id);
     if (!track) {
       throw new NotFoundException('Track not found');
@@ -33,7 +33,7 @@ export class TracksService {
     return track;
   }
 
-  update(id: string, updateTrackDto: UpdateTrackDto): Track {
+  async update(id: string, updateTrackDto: UpdateTrackDto): Promise<Track> {
     const trackIndex = this.db.tracks.findIndex((track) => track.id === id);
     if (trackIndex === -1) {
       throw new NotFoundException('Track not found');
@@ -51,7 +51,7 @@ export class TracksService {
     return updatedTrack;
   }
 
-  remove(id: string): void {
+  async remove(id: string): Promise<void> {
     const trackIndex = this.db.tracks.findIndex((track) => track.id === id);
     if (trackIndex === -1) {
       throw new NotFoundException('Track not found');
@@ -60,7 +60,7 @@ export class TracksService {
     this.db.deleteTrack(id);
   }
 
-  exists(id: string): boolean {
+  async exists(id: string): Promise<boolean> {
     return this.db.tracks.some((track) => track.id === id);
   }
 }

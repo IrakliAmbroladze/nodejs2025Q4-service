@@ -17,7 +17,7 @@ export class UsersService {
     return userWithoutPassword;
   }
 
-  create(createUserDto: CreateUserDto): UserResponse {
+  async create(createUserDto: CreateUserDto): Promise<UserResponse> {
     const newUser: User = {
       id: randomUUID(),
       login: createUserDto.login,
@@ -31,11 +31,11 @@ export class UsersService {
     return this.excludePassword(newUser);
   }
 
-  findAll(): UserResponse[] {
+  async findAll(): Promise<UserResponse[]> {
     return this.db.users.map((user) => this.excludePassword(user));
   }
 
-  findOne(id: string): UserResponse {
+  async findOne(id: string): Promise<UserResponse> {
     const user = this.db.users.find((user) => user.id === id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -43,7 +43,10 @@ export class UsersService {
     return this.excludePassword(user);
   }
 
-  update(id: string, updatePasswordDto: UpdatePasswordDto): UserResponse {
+  async update(
+    id: string,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<UserResponse> {
     const userIndex = this.db.users.findIndex((user) => user.id === id);
     if (userIndex === -1) {
       throw new NotFoundException('User not found');
@@ -62,7 +65,7 @@ export class UsersService {
     return this.excludePassword(user);
   }
 
-  remove(id: string): void {
+  async remove(id: string): Promise<void> {
     const userIndex = this.db.users.findIndex((user) => user.id === id);
     if (userIndex === -1) {
       throw new NotFoundException('User not found');

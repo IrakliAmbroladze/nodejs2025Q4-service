@@ -8,7 +8,7 @@ import { DatabaseService } from '../database/database.service';
 export class ArtistsService {
   constructor(private readonly db: DatabaseService) {}
 
-  create(createArtistDto: CreateArtistDto): Artist {
+  async create(createArtistDto: CreateArtistDto): Promise<Artist> {
     const newArtist: Artist = {
       id: randomUUID(),
       name: createArtistDto.name,
@@ -19,11 +19,11 @@ export class ArtistsService {
     return newArtist;
   }
 
-  findAll(): Artist[] {
+  async findAll(): Promise<Artist[]> {
     return this.db.artists;
   }
 
-  findOne(id: string): Artist {
+  async findOne(id: string): Promise<Artist> {
     const artist = this.db.artists.find((artist) => artist.id === id);
     if (!artist) {
       throw new NotFoundException('Artist not found');
@@ -31,7 +31,7 @@ export class ArtistsService {
     return artist;
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto): Artist {
+  async update(id: string, updateArtistDto: UpdateArtistDto): Promise<Artist> {
     const artistIndex = this.db.artists.findIndex((artist) => artist.id === id);
     if (artistIndex === -1) {
       throw new NotFoundException('Artist not found');
@@ -47,7 +47,7 @@ export class ArtistsService {
     return updatedArtist;
   }
 
-  remove(id: string): void {
+  async remove(id: string): Promise<void> {
     const artistIndex = this.db.artists.findIndex((artist) => artist.id === id);
     if (artistIndex === -1) {
       throw new NotFoundException('Artist not found');
@@ -56,7 +56,7 @@ export class ArtistsService {
     this.db.deleteArtist(id);
   }
 
-  exists(id: string): boolean {
+  async exists(id: string): Promise<boolean> {
     return this.db.artists.some((artist) => artist.id === id);
   }
 }

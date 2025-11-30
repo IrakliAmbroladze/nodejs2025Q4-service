@@ -18,42 +18,47 @@ export class FavoritesService {
     private readonly tracksService: TracksService,
   ) {}
 
-  findAll(): FavoritesResponse {
-    const artists = this.db.favorites.artists
-      .map((id) => {
+  async findAll(): Promise<FavoritesResponse> {
+    const artists = await Promise.all(
+      this.db.favorites.artists.map(async (id) => {
         try {
-          return this.artistsService.findOne(id);
+          return await this.artistsService.findOne(id);
         } catch {
           return null;
         }
-      })
-      .filter((artist) => artist !== null);
+      }),
+    );
 
-    const albums = this.db.favorites.albums
-      .map((id) => {
+    const albums = await Promise.all(
+      this.db.favorites.albums.map(async (id) => {
         try {
-          return this.albumsService.findOne(id);
+          return await this.albumsService.findOne(id);
         } catch {
           return null;
         }
-      })
-      .filter((album) => album !== null);
+      }),
+    );
 
-    const tracks = this.db.favorites.tracks
-      .map((id) => {
+    const tracks = await Promise.all(
+      this.db.favorites.tracks.map(async (id) => {
         try {
-          return this.tracksService.findOne(id);
+          return await this.tracksService.findOne(id);
         } catch {
           return null;
         }
-      })
-      .filter((track) => track !== null);
+      }),
+    );
 
-    return { artists, albums, tracks };
+    return {
+      artists: artists.filter((artist) => artist !== null),
+      albums: albums.filter((album) => album !== null),
+      tracks: tracks.filter((track) => track !== null),
+    };
   }
 
-  addTrack(id: string): void {
-    if (!this.tracksService.exists(id)) {
+  async addTrack(id: string): Promise<void> {
+    const exists = await this.tracksService.exists(id);
+    if (!exists) {
       throw new UnprocessableEntityException('Track does not exist');
     }
     if (!this.db.favorites.tracks.includes(id)) {
@@ -61,7 +66,7 @@ export class FavoritesService {
     }
   }
 
-  removeTrack(id: string): void {
+  async removeTrack(id: string): Promise<void> {
     const index = this.db.favorites.tracks.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Track is not in favorites');
@@ -69,8 +74,9 @@ export class FavoritesService {
     this.db.favorites.tracks.splice(index, 1);
   }
 
-  addAlbum(id: string): void {
-    if (!this.albumsService.exists(id)) {
+  async addAlbum(id: string): Promise<void> {
+    const exists = await this.albumsService.exists(id);
+    if (!exists) {
       throw new UnprocessableEntityException('Album does not exist');
     }
     if (!this.db.favorites.albums.includes(id)) {
@@ -78,7 +84,7 @@ export class FavoritesService {
     }
   }
 
-  removeAlbum(id: string): void {
+  async removeAlbum(id: string): Promise<void> {
     const index = this.db.favorites.albums.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Album is not in favorites');
@@ -86,8 +92,9 @@ export class FavoritesService {
     this.db.favorites.albums.splice(index, 1);
   }
 
-  addArtist(id: string): void {
-    if (!this.artistsService.exists(id)) {
+  async addArtist(id: string): Promise<void> {
+    const exists = await this.artistsService.exists(id);
+    if (!exists) {
       throw new UnprocessableEntityException('Artist does not exist');
     }
     if (!this.db.favorites.artists.includes(id)) {
@@ -95,7 +102,7 @@ export class FavoritesService {
     }
   }
 
-  removeArtist(id: string): void {
+  async removeArtist(id: string): Promise<void> {
     const index = this.db.favorites.artists.indexOf(id);
     if (index === -1) {
       throw new NotFoundException('Artist is not in favorites');
