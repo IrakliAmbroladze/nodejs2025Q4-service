@@ -1,160 +1,314 @@
 # Home Library Service
 
-A RESTful API service for managing a personal music library built with NestJS. Users can manage Artists, Albums, Tracks, and maintain a Favorites collection.
-
-## Features
-
-- **CRUD Operations** for Users, Artists, Albums, and Tracks
-- **Favorites Management** - Add/remove items to/from favorites
-- **Data Validation** - Request validation using DTOs and class-validator
-- **UUID Validation** - All IDs are validated as UUIDs
-- **Cascading Deletes** - Automatic cleanup of references when entities are deleted
-- **Password Security** - User passwords are never exposed in responses
-- **In-Memory Storage** - Fast data access with easy migration path to databases
-- **Error Handling** - Proper HTTP status codes (200, 201, 204, 400, 403, 404, 422)
+A RESTful API service for managing a personal music library. Built with NestJS, PostgreSQL, TypeORM, and Docker.
 
 ## Prerequisites
 
-- Git - [Download & Install Git](https://git-scm.com/downloads).
-- Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- **Docker** >= 20.x ([Install Docker](https://docs.docker.com/engine/install/))
+- **Docker Compose** >= 2.x
+- **Node.js** >= 24.10.0 (for local development only)
 
-## Downloading
+## Quick Start
 
-```
-git clone https://github.com/IrakliAmbroladze/nodejs2025Q4-service
-```
+### 1. Clone the Repository
 
-## Installing NPM modules
-
-```
+```bash
+git clone https://github.com/IrakliAmbroladze/nodejs2025Q4-service.git
+cd nodejs2025Q4-service
 npm install
 ```
 
-## Running application
+### 2. Configure Environment Variables
 
-Create `.env` file in the root directory:
+Create a `.env` file in the root directory:
 
 ```env
+# Application
 PORT=4000
+NODE_ENV=production
+
+# PostgreSQL
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=home_library
 ```
 
-```
-npm start
-```
+> **Note:** For local development, create `.env.local` with `POSTGRES_HOST=localhost`
 
-After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+### 3. Start with Docker Compose
 
-## Testing
-
-After application running open new terminal and enter:
-
-To run all tests without authorization
+```bash
+# Build and start containers
+docker-compose up -d
 
 ```
-npm run test
+
+### 4. Run Database Migrations
+
+```bash
+npm run migration:run
 ```
 
-To run only one of all test suites
+### 5. Access the Application
 
-```
-npm run test -- <path to suite>
-```
+- **API Base URL:** `http://localhost:4000`
+- **Swagger Documentation:** `http://localhost:4000/doc`
 
-To run all test with authorization
 
-```
-npm run test:auth
-```
+## Running Tests
 
-To run only specific test suite with authorization
-
-```
-npm run test:auth -- <path to suite>
+```bash
+npm test
 ```
 
-### Auto-fix and format
-
-```
-npm run lint
-```
-
-```
-npm run format
-```
-
-## Architecture
-
-The application follows a modular architecture:
-
-```
-src/
-├── database/
-├── users/
-├── artists/
-├── albums/
-├── tracks/
-└── favorites/
-```
-
-Each module contains:
-
-- **Controller** - Handles HTTP requests and responses
-- **Service** - Business logic and data operations
-- **Entities** - TypeScript interfaces for data models
-- **DTOs** - Data Transfer Objects for validation
 
 ## API Endpoints
 
+All endpoints are available at `http://localhost:4000`
+
 ### Users (`/user`)
 
-| Method | Endpoint    | Description          | Status Codes       |
-| ------ | ----------- | -------------------- | ------------------ |
-| GET    | `/user`     | Get all users        | 200                |
-| GET    | `/user/:id` | Get user by ID       | 200, 400, 404      |
-| POST   | `/user`     | Create new user      | 201, 400           |
-| PUT    | `/user/:id` | Update user password | 200, 400, 403, 404 |
-| DELETE | `/user/:id` | Delete user          | 204, 400, 404      |
+```bash
+# Get all users
+GET /user
+
+# Get user by ID
+GET /user/:id
+
+# Create user
+POST /user
+Body: { "login": "username", "password": "password" }
+
+# Update password
+PUT /user/:id
+Body: { "oldPassword": "old", "newPassword": "new" }
+
+# Delete user
+DELETE /user/:id
+```
 
 ### Artists (`/artist`)
 
-| Method | Endpoint      | Description       | Status Codes  |
-| ------ | ------------- | ----------------- | ------------- |
-| GET    | `/artist`     | Get all artists   | 200           |
-| GET    | `/artist/:id` | Get artist by ID  | 200, 400, 404 |
-| POST   | `/artist`     | Create new artist | 201, 400      |
-| PUT    | `/artist/:id` | Update artist     | 200, 400, 404 |
-| DELETE | `/artist/:id` | Delete artist     | 204, 400, 404 |
+```bash
+# Get all artists
+GET /artist
+
+# Get artist by ID
+GET /artist/:id
+
+# Create artist
+POST /artist
+Body: { "name": "Artist Name", "grammy": true }
+
+# Update artist
+PUT /artist/:id
+Body: { "name": "Updated Name", "grammy": false }
+
+# Delete artist
+DELETE /artist/:id
+```
 
 ### Albums (`/album`)
 
-| Method | Endpoint     | Description      | Status Codes  |
-| ------ | ------------ | ---------------- | ------------- |
-| GET    | `/album`     | Get all albums   | 200           |
-| GET    | `/album/:id` | Get album by ID  | 200, 400, 404 |
-| POST   | `/album`     | Create new album | 201, 400      |
-| PUT    | `/album/:id` | Update album     | 200, 400, 404 |
-| DELETE | `/album/:id` | Delete album     | 204, 400, 404 |
+```bash
+# Get all albums
+GET /album
+
+# Get album by ID
+GET /album/:id
+
+# Create album
+POST /album
+Body: { "name": "Album Name", "year": 2024, "artistId": "uuid-or-null" }
+
+# Update album
+PUT /album/:id
+Body: { "name": "Updated Name", "year": 2024, "artistId": "uuid-or-null" }
+
+# Delete album
+DELETE /album/:id
+```
 
 ### Tracks (`/track`)
 
-| Method | Endpoint     | Description      | Status Codes  |
-| ------ | ------------ | ---------------- | ------------- |
-| GET    | `/track`     | Get all tracks   | 200           |
-| GET    | `/track/:id` | Get track by ID  | 200, 400, 404 |
-| POST   | `/track`     | Create new track | 201, 400      |
-| PUT    | `/track/:id` | Update track     | 200, 400, 404 |
-| DELETE | `/track/:id` | Delete track     | 204, 400, 404 |
+```bash
+# Get all tracks
+GET /track
+
+# Get track by ID
+GET /track/:id
+
+# Create track
+POST /track
+Body: { "name": "Track Name", "duration": 300, "artistId": "uuid-or-null", "albumId": "uuid-or-null" }
+
+# Update track
+PUT /track/:id
+Body: { "name": "Updated Name", "duration": 300, "artistId": "uuid-or-null", "albumId": "uuid-or-null" }
+
+# Delete track
+DELETE /track/:id
+```
 
 ### Favorites (`/favs`)
 
-| Method | Endpoint           | Description                  | Status Codes  |
-| ------ | ------------------ | ---------------------------- | ------------- |
-| GET    | `/favs`            | Get all favorites            | 200           |
-| POST   | `/favs/track/:id`  | Add track to favorites       | 201, 400, 422 |
-| DELETE | `/favs/track/:id`  | Remove track from favorites  | 204, 400, 404 |
-| POST   | `/favs/album/:id`  | Add album to favorites       | 201, 400, 422 |
-| DELETE | `/favs/album/:id`  | Remove album from favorites  | 204, 400, 404 |
-| POST   | `/favs/artist/:id` | Add artist to favorites      | 201, 400, 422 |
-| DELETE | `/favs/artist/:id` | Remove artist from favorites | 204, 400, 404 |
+```bash
+# Get all favorites (returns full objects, not IDs)
+GET /favs
+
+# Add to favorites
+POST /favs/track/:id
+POST /favs/album/:id
+POST /favs/artist/:id
+
+# Remove from favorites
+DELETE /favs/track/:id
+DELETE /favs/album/:id
+DELETE /favs/artist/:id
+```
+
+## API Response Status Codes
+
+| Code | Description |
+|------|-------------|
+| 200  | Success (GET, PUT) |
+| 201  | Created (POST) |
+| 204  | No Content (DELETE) |
+| 400  | Bad Request (invalid UUID or missing fields) |
+| 403  | Forbidden (wrong password) |
+| 404  | Not Found |
+| 422  | Unprocessable Entity (entity doesn't exist when adding to favorites) |
+
+## Architecture
+
+### Application Structure
+
+```
+src/
+├── config/
+│   └── typeorm.config.ts      # Database configuration
+├── migrations/                # Database migrations
+├── users/                     # Users module
+│   ├── entities/
+│   ├── dto/
+│   ├── users.controller.ts
+│   ├── users.service.ts
+│   └── users.module.ts
+├── artists/                   # Artists module
+├── albums/                    # Albums module
+├── tracks/                    # Tracks module
+├── favorites/                 # Favorites module
+└── main.ts                    # Application entry point
+```
+
+## Database Schema
+
+### Tables and Relations
+
+```sql
+users (id, login, password, version, createdAt, updatedAt)
+
+artists (id, name, grammy)
+  ↓ One-to-Many
+albums (id, name, year, artistId [FK → artists])
+  ↓ One-to-Many
+tracks (id, name, duration, artistId [FK → artists], albumId [FK → albums])
+
+favorites (id, entityId, entityType)
+```
+
+### Foreign Key Constraints
+
+- `albums.artistId` → `artists.id` (ON DELETE SET NULL)
+- `tracks.artistId` → `artists.id` (ON DELETE SET NULL)
+- `tracks.albumId` → `albums.id` (ON DELETE SET NULL)
+
+When an artist or album is deleted, related references are automatically set to `null`.
+
+## Environment Variables
+
+| Variable | Description | Default | Docker Value |
+|----------|-------------|---------|--------------|
+| `PORT` | Application port | `4000` | `4000` |
+| `NODE_ENV` | Environment | `development` | `production` |
+| `POSTGRES_HOST` | PostgreSQL host | `localhost` | `postgres` |
+| `POSTGRES_PORT` | PostgreSQL port | `5432` | `5432` |
+| `POSTGRES_USER` | Database user | `postgres` | `postgres` |
+| `POSTGRES_PASSWORD` | Database password | `postgres` | `postgres` |
+| `POSTGRES_DB` | Database name | `home_library` | `home_library` |
+
+## Docker Image
+
+### Check Image Size
+
+```bash
+docker images | grep home-library
+
+```
+
+### Pull from Docker Hub
+
+```bash
+docker pull irakliambroladze/home-library-service:latest
+```
+
+### Container Keeps Restarting
+
+```bash
+# Check application logs
+docker-compose logs -f app
+
+```
+
+### Reset Everything
+
+```bash
+# Stop and remove everything
+docker-compose down -v
+
+# Rebuild
+docker-compose build --no-cache
+
+# Start fresh
+docker-compose up -d
+
+# Run migrations
+npm run migration:run
+```
+
+## Local Development (without Docker)
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Start local PostgreSQL (Docker)
+docker run -d \
+  --name postgres-local \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=home_library \
+  -p 5432:5432 \
+  postgres:16-alpine
+
+# Create .env.local
+cat > .env.local << EOF
+PORT=4000
+NODE_ENV=development
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=home_library
+EOF
+
+# Run migrations
+npm run migration:run
+
+# Start application
+npm run start:dev
+```
+
