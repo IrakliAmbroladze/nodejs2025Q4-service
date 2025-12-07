@@ -3,7 +3,6 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { User, UserResponse } from './entities/user.entity';
 import { CreateUserDto, UpdatePasswordDto } from './dto/user.dto';
 import { Repository } from 'typeorm';
@@ -24,14 +23,13 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<UserResponse> {
     const dateNow = Date.now();
-    const newUser: User = {
-      id: randomUUID(),
+    const newUser = this.userRepository.create({
       login: createUserDto.login,
       password: createUserDto.password,
       version: 1,
       createdAt: dateNow,
       updatedAt: dateNow,
-    };
+    });
 
     const savedUser = await this.userRepository.save(newUser);
     return this.excludePassword(savedUser);
