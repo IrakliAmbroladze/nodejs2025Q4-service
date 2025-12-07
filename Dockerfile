@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production && \
+# Install ALL dependencies (including devDependencies for building)
+RUN npm ci && \
     npm cache clean --force
 
 # Copy source code
@@ -32,6 +32,9 @@ RUN npm ci --only=production && \
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
+
+# Copy doc folder for Swagger
+COPY --from=builder /app/doc ./doc
 
 # Expose port
 EXPOSE 4000
