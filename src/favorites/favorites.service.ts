@@ -3,8 +3,10 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Favorite } from './entities/favorite.entity';
 import { FavoritesResponse } from './entities/favorites.entity';
-import { DatabaseService } from '../database/database.service';
 import { ArtistsService } from '../artists/artists.service';
 import { AlbumsService } from '../albums/albums.service';
 import { TracksService } from '../tracks/tracks.service';
@@ -12,48 +14,57 @@ import { TracksService } from '../tracks/tracks.service';
 @Injectable()
 export class FavoritesService {
   constructor(
-    private readonly db: DatabaseService,
+    @InjectRepository(Favorite)
+    private readonly favoriteRepository: Repository<Favorite>,
     private readonly artistsService: ArtistsService,
     private readonly albumsService: AlbumsService,
     private readonly tracksService: TracksService,
   ) {}
 
   async findAll(): Promise<FavoritesResponse> {
-    const artists = await Promise.all(
-      this.db.favorites.artists.map(async (id) => {
-        try {
-          return await this.artistsService.findOne(id);
-        } catch {
-          return null;
-        }
-      }),
-    );
+    const favorites = await this.favoriteRepository.find();
 
-    const albums = await Promise.all(
-      this.db.favorites.albums.map(async (id) => {
-        try {
-          return await this.albumsService.findOne(id);
-        } catch {
-          return null;
-        }
-      }),
-    );
+    const artistIds = favorites
+      .filter((f) => f.entityType === 'artist')
+      .map((f) => f.entityId);
+    const albumIds = favorites
+      .filter((f) => f.entityType === 'album')
+      .map((f) => f.entityId);
+    const trackIds = favorites
+      .filter((f) => f.entityType === 'track')
+      .map((f) => f.entityId);
 
-    const tracks = await Promise.all(
-      this.db.favorites.tracks.map(async (id) => {
-        try {
-          return await this.tracksService.findOne(id);
-        } catch {
-          return null;
-        }
-      }),
-    );
+    const artists = [];
+    for (const id of artistIds) {
+      try {
+        const artist = await this.artistsService.findOne(id);
+        artists.push(artist);
+      } catch {
+        // Skip if not found
+      }
+    }
 
-    return {
-      artists: artists.filter((artist) => artist !== null),
-      albums: albums.filter((album) => album !== null),
-      tracks: tracks.filter((track) => track !== null),
-    };
+    const albums = [];
+    for (const id of albumIds) {
+      try {
+        const album = await this.albumsService.findOne(id);
+        albums.push(album);
+      } catch {
+        // Skip if not found
+      }
+    }
+
+    const tracks = [];
+    for (const id of trackIds) {
+      try {
+        const track = await this.tracksService.findOne(id);
+        tracks.push(track);
+      } catch {
+        // Skip if not found
+      }
+    }
+
+    return { artists, albums, tracks };
   }
 
   async addTrack(id: string): Promise<void> {
@@ -61,17 +72,28 @@ export class FavoritesService {
     if (!exists) {
       throw new UnprocessableEntityException('Track does not exist');
     }
-    if (!this.db.favorites.tracks.includes(id)) {
-      this.db.favorites.tracks.push(id);
+
+    const existing = await this.favoriteRepository.findOne({
+      where: { entityId: id, entityType: 'track' },
+    });
+
+    if (!existing) {
+      const favorite = this.favoriteRepository.create({
+        entityId: id,
+        entityType: 'track',
+      });
+      await this.favoriteRepository.save(favorite);
     }
   }
 
   async removeTrack(id: string): Promise<void> {
-    const index = this.db.favorites.tracks.indexOf(id);
-    if (index === -1) {
+    const result = await this.favoriteRepository.delete({
+      entityId: id,
+      entityType: 'track',
+    });
+    if (result.affected === 0) {
       throw new NotFoundException('Track is not in favorites');
     }
-    this.db.favorites.tracks.splice(index, 1);
   }
 
   async addAlbum(id: string): Promise<void> {
@@ -79,17 +101,28 @@ export class FavoritesService {
     if (!exists) {
       throw new UnprocessableEntityException('Album does not exist');
     }
-    if (!this.db.favorites.albums.includes(id)) {
-      this.db.favorites.albums.push(id);
+
+    const existing = await this.favoriteRepository.findOne({
+      where: { entityId: id, entityType: 'album' },
+    });
+
+    if (!existing) {
+      const favorite = this.favoriteRepository.create({
+        entityId: id,
+        entityType: 'album',
+      });
+      await this.favoriteRepository.save(favorite);
     }
   }
 
   async removeAlbum(id: string): Promise<void> {
-    const index = this.db.favorites.albums.indexOf(id);
-    if (index === -1) {
+    const result = await this.favoriteRepository.delete({
+      entityId: id,
+      entityType: 'album',
+    });
+    if (result.affected === 0) {
       throw new NotFoundException('Album is not in favorites');
     }
-    this.db.favorites.albums.splice(index, 1);
   }
 
   async addArtist(id: string): Promise<void> {
@@ -97,16 +130,27 @@ export class FavoritesService {
     if (!exists) {
       throw new UnprocessableEntityException('Artist does not exist');
     }
-    if (!this.db.favorites.artists.includes(id)) {
-      this.db.favorites.artists.push(id);
+
+    const existing = await this.favoriteRepository.findOne({
+      where: { entityId: id, entityType: 'artist' },
+    });
+
+    if (!existing) {
+      const favorite = this.favoriteRepository.create({
+        entityId: id,
+        entityType: 'artist',
+      });
+      await this.favoriteRepository.save(favorite);
     }
   }
 
   async removeArtist(id: string): Promise<void> {
-    const index = this.db.favorites.artists.indexOf(id);
-    if (index === -1) {
+    const result = await this.favoriteRepository.delete({
+      entityId: id,
+      entityType: 'artist',
+    });
+    if (result.affected === 0) {
       throw new NotFoundException('Artist is not in favorites');
     }
-    this.db.favorites.artists.splice(index, 1);
   }
 }
