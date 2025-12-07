@@ -15,24 +15,51 @@ A RESTful API service for managing a personal music library. Built with NestJS, 
 ```bash
 git clone https://github.com/IrakliAmbroladze/nodejs2025Q4-service.git
 cd nodejs2025Q4-service
+git checkout develop
 npm install
 ```
 
 ### 2. Configure Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` and `.env.local` files in the root directory:
 
-```env
-# Application
+```
+cat > .env << 'EOF'
 PORT=4000
+
+CRYPT_SALT=10
+JWT_SECRET_KEY=secret123123
+JWT_SECRET_REFRESH_KEY=secret123123
+TOKEN_EXPIRE_TIME=1h
+TOKEN_REFRESH_EXPIRE_TIME=24h
+
 NODE_ENV=production
 
-# PostgreSQL
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=home_library
+EOF
+
+cat > .env.local << 'EOF'
+PORT=4000
+
+CRYPT_SALT=10
+JWT_SECRET_KEY=secret123123
+JWT_SECRET_REFRESH_KEY=secret123123
+TOKEN_EXPIRE_TIME=1h
+TOKEN_REFRESH_EXPIRE_TIME=24h
+
+NODE_ENV=development
+
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=home_library
+EOF
+
 ```
 
 > **Note:** For local development, create `.env.local` with `POSTGRES_HOST=localhost`
