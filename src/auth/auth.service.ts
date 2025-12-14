@@ -21,7 +21,7 @@ export class AuthService {
     private readonly loggingService: LoggingService,
   ) {}
 
-  async signup(signupDto: SignupDto): Promise<{ message: string }> {
+  async signup(signupDto: SignupDto): Promise<{ id: string; message: string }> {
     const { login, password } = signupDto;
 
     const existingUser = await this.userRepository.findOne({
@@ -46,7 +46,7 @@ export class AuthService {
     await this.userRepository.save(user);
     this.loggingService.log(`New user registered: ${login}`, 'AuthService');
 
-    return { message: 'User created successfully' };
+    return { id: user.id, message: 'User created successfully' };
   }
 
   async login(
@@ -54,7 +54,6 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const { login, password } = loginDto;
 
-    // Find user
     const user = await this.userRepository.findOne({ where: { login } });
 
     if (!user) {
@@ -65,7 +64,6 @@ export class AuthService {
       throw new ForbiddenException('Invalid login or password');
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -76,7 +74,6 @@ export class AuthService {
       throw new ForbiddenException('Invalid login or password');
     }
 
-    // Generate tokens
     const tokens = await this.generateTokens(user.id, user.login);
     this.loggingService.log(`User logged in: ${login}`, 'AuthService');
 
@@ -88,13 +85,15 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const { refreshToken } = refreshTokenDto;
 
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
+
     try {
-      // Verify refresh token
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_SECRET_REFRESH_KEY,
       });
 
-      // Generate new tokens
       const tokens = await this.generateTokens(payload.userId, payload.login);
       this.loggingService.log(
         `Tokens refreshed for user: ${payload.login}`,
@@ -114,14 +113,18 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = { userId, login };
 
+    const accessTokenExpiry = (process.env.TOKEN_EXPIRE_TIME || '1h') as any;
+    const refreshTokenExpiry = (process.env.TOKEN_REFRESH_EXPIRE_TIME ||
+      '24h') as any;
+
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET_KEY,
-      expiresIn: process.env.TOKEN_EXPIRE_TIME || '1h',
+      expiresIn: accessTokenExpiry,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET_REFRESH_KEY,
-      expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME || '24h',
+      expiresIn: refreshTokenExpiry,
     });
 
     return { accessToken, refreshToken };

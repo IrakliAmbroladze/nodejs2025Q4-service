@@ -1,6 +1,6 @@
 import { Injectable, LogLevel } from '@nestjs/common';
-import fs from 'node:fs';
-import path from 'node:path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class LoggingService {
