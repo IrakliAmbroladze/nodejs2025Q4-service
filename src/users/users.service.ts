@@ -7,6 +7,7 @@ import { User, UserResponse } from './entities/user.entity';
 import { CreateUserDto, UpdatePasswordDto } from './dto/user.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -22,10 +23,12 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserResponse> {
+    const salt = parseInt(process.env.CRYPT_SALT, 10) || 10;
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
     const dateNow = Date.now();
     const newUser = this.userRepository.create({
       login: createUserDto.login,
-      password: createUserDto.password,
+      password: hashedPassword,
       version: 1,
       createdAt: dateNow,
       updatedAt: dateNow,
@@ -57,11 +60,16 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.password !== updatePasswordDto.oldPassword) {
+    const isOldPasswordValid = await bcrypt.compare(
+      updatePasswordDto.oldPassword,
+      user.password,
+    );
+    if (!isOldPasswordValid) {
       throw new ForbiddenException('Old password is incorrect');
     }
 
-    user.password = updatePasswordDto.newPassword;
+    const salt = parseInt(process.env.CRYPT_SALT, 10) || 10;
+    user.password = await bcrypt.hash(updatePasswordDto.newPassword, salt);
     user.updatedAt = Date.now();
 
     const updatedUser = await this.userRepository.save(user);
