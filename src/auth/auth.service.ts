@@ -21,7 +21,7 @@ export class AuthService {
     private readonly loggingService: LoggingService,
   ) {}
 
-  async signup(signupDto: SignupDto): Promise<{ message: string }> {
+  async signup(signupDto: SignupDto): Promise<{ id: string; message: string }> {
     const { login, password } = signupDto;
 
     const existingUser = await this.userRepository.findOne({
@@ -46,7 +46,7 @@ export class AuthService {
     await this.userRepository.save(user);
     this.loggingService.log(`New user registered: ${login}`, 'AuthService');
 
-    return { message: 'User created successfully' };
+    return { id: user.id, message: 'User created successfully' };
   }
 
   async login(
@@ -84,6 +84,10 @@ export class AuthService {
     refreshTokenDto: RefreshTokenDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const { refreshToken } = refreshTokenDto;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
 
     try {
       const payload = this.jwtService.verify(refreshToken, {

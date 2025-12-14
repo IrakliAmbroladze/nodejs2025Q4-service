@@ -23,6 +23,10 @@ FROM node:24-alpine
 # Set working directory
 WORKDIR /app
 
+# Create logs directory with proper permissions BEFORE switching to node user
+RUN mkdir -p /app/logs && \
+    chown -R node:node /app/logs
+
 # Copy package files
 COPY package*.json ./
 
@@ -35,6 +39,9 @@ COPY --from=builder /app/dist ./dist
 
 # Copy doc folder for Swagger
 COPY --from=builder /app/doc ./doc
+
+# Change ownership of all app files to node user
+RUN chown -R node:node /app
 
 # Expose port
 EXPOSE 4000
