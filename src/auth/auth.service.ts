@@ -85,6 +85,10 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const { refreshToken } = refreshTokenDto;
 
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
+
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_SECRET_REFRESH_KEY,
