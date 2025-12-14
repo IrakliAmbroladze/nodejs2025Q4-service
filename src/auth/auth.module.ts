@@ -13,7 +13,7 @@ import { User } from '../users/entities/user.entity';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
-      signOptions: { expiresIn: process.env.TOKEN_EXPIRE_TIME || '1h' },
+      signOptions: { expiresIn: '1h' as any },
     }),
   ],
   controllers: [AuthController],
