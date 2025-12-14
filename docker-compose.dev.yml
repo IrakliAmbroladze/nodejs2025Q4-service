@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: home-library-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+      - postgres-logs-dev:/var/log/postgresql
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      - home-library-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: home-library-app-dev
+    restart: unless-stopped
+    environment:
+      PORT: ${PORT}
+      NODE_ENV: development
+      DOCKER_ENV: "true"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${PORT}:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - home-library-network
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./nest-cli.json:/app/nest-cli.json
+      - /app/node_modules
+
+volumes:
+  postgres-data-dev:
+    driver: local
+  postgres-logs-dev:
+    driver: local
+
+networks:
+  home-library-network:
+    driver: bridge
