@@ -9,6 +9,11 @@ import { ArtistsModule } from './artists/artists.module';
 import { AlbumsModule } from './albums/albums.module';
 import { TracksModule } from './tracks/tracks.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggingModule } from './logging/logging.module';
+import { LoggingInterceptor } from './logging/logging.interceptor';
+import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -21,8 +26,20 @@ import { FavoritesModule } from './favorites/favorites.module';
     AlbumsModule,
     TracksModule,
     FavoritesModule,
+    LoggingModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

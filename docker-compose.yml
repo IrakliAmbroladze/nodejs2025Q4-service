@@ -35,8 +35,17 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      CRYPT_SALT: ${CRYPT_SALT}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_SECRET_REFRESH_KEY: ${JWT_SECRET_REFRESH_KEY}
+      TOKEN_EXPIRE_TIME: ${TOKEN_EXPIRE_TIME}
+      TOKEN_REFRESH_EXPIRE_TIME: ${TOKEN_REFRESH_EXPIRE_TIME}
+      LOG_LEVEL: ${LOG_LEVEL}
+      LOG_MAX_FILE_SIZE: ${LOG_MAX_FILE_SIZE}
     ports:
       - "${PORT}:4000"
+    volumes:
+      - app-logs:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,6 +56,8 @@ volumes:
   postgres-data:
     driver: local
   postgres-logs:
+    driver: local
+  app-logs:
     driver: local
 
 networks:
