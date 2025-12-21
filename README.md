@@ -10,7 +10,7 @@ A RESTful API service for managing a personal music library. Built with NestJS, 
 
 ## Quick Start
 
-### 1. Clone the Repository
+###  Clone the Repository
 
 ```bash
 git clone https://github.com/IrakliAmbroladze/nodejs2025Q4-service.git
@@ -19,7 +19,7 @@ git checkout develop
 npm install
 ```
 
-### 2. Configure Environment Variables
+###  Configure Environment Variables
 
 Create a `.env` and `.env.local` files in the root directory:
 
@@ -40,6 +40,9 @@ POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=home_library
+
+LOG_LEVEL=2
+LOG_MAX_FILE_SIZE=1024
 EOF
 
 cat > .env.local << 'EOF'
@@ -58,13 +61,43 @@ POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=home_library
+
+LOG_LEVEL=2
+LOG_MAX_FILE_SIZE=1024
 EOF
 
 ```
 
 > **Note:** For local development, create `.env.local` with `POSTGRES_HOST=localhost`
 
-### 3. Start with Docker Compose
+## start dev mode
+
+### Setup
+
+```bash
+
+# Start local PostgreSQL (Docker)
+docker run -d \
+  --name postgres-local \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=home_library \
+  -p 5432:5432 \
+  postgres:16-alpine
+
+# Run migrations
+npm run migration:run
+
+# Start application
+npm run start:dev
+```
+
+## Running Tests
+
+```bash
+npm run test:auth
+```
+
+###  Start with Docker Compose
 
 ```bash
 # Build and start containers
@@ -78,18 +111,31 @@ docker-compose up -d
 npm run migration:run
 ```
 
-### 5. Access the Application
+## Running Tests
+```bash
+npm run test:auth
+```
+### Access the Application
 
 - **API Base URL:** `http://localhost:4000`
 - **Swagger Documentation:** `http://localhost:4000/doc`
 
 
-## Running Tests
+### Reset Everything
 
 ```bash
-npm test
-```
+# Stop and remove everything
+docker-compose down -v
 
+# Rebuild
+docker-compose build --no-cache
+
+# Start fresh
+docker-compose up -d
+
+# Run migrations
+npm run migration:run
+```
 
 ## API Endpoints
 
@@ -289,53 +335,4 @@ docker-compose logs -f app
 
 ```
 
-### Reset Everything
-
-```bash
-# Stop and remove everything
-docker-compose down -v
-
-# Rebuild
-docker-compose build --no-cache
-
-# Start fresh
-docker-compose up -d
-
-# Run migrations
-npm run migration:run
-```
-
-## Local Development (without Docker)
-
-### Setup
-
-```bash
-# Install dependencies
-npm install
-
-# Start local PostgreSQL (Docker)
-docker run -d \
-  --name postgres-local \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=home_library \
-  -p 5432:5432 \
-  postgres:16-alpine
-
-# Create .env.local
-cat > .env.local << EOF
-PORT=4000
-NODE_ENV=development
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=home_library
-EOF
-
-# Run migrations
-npm run migration:run
-
-# Start application
-npm run start:dev
-```
 

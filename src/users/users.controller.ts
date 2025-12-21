@@ -13,6 +13,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdatePasswordDto } from './dto/user.dto';
 import { validate as isUUID } from 'uuid';
+//import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('user')
 export class UsersController {
